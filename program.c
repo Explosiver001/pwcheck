@@ -24,13 +24,13 @@ int getLenght(char *buffer){
 }
 
 /*evaluates numbers from string*/
-int getValue(char *buffer){
+long getValue(char *buffer){
     int lenght = getLenght(buffer);
-    int value = 0;
-    for (int i = 0; i < lenght; i++){
+    unsigned long long value = 0;
+    for (int i = 0; (i < lenght) && (i<10); i++){
         //converts only if the string contains numbers
-        if((buffer[i] >= '0')&&(buffer[i] <= '9')){
-            value = value * 10 + (int)(buffer[i] - '0'); //puts evaluated digit to the end of the number  
+        if(((buffer[i] >= '0')&&(buffer[i] <= '9'))&&(value>=0)){
+            value = value * 10 + buffer[i] - '0'; //puts evaluated digit to the end of the number  
         }
         else return -1;
     }
@@ -110,7 +110,7 @@ int level2check(char *password, int parameter, int lenght){
 /*checking security level 3*/
 int level3check(char *password, int parameter, int lenght){
     int sequence = 1; //how many characters are the same next to each other
-    for (int i = 0; i<= lenght-parameter+1; i++){
+    for (int i = 0; i<= lenght-parameter+2; i++){
         if(password[i]==password[i+1]){
             sequence++;
         }
@@ -212,7 +212,7 @@ int *inputCheck(int argc, char *argv[], int *output){
                 break;
             default:
                 if(isDigit(argv[i][0])){
-                    if(output[outcount] == 0){
+                    if(output[outcount] == 0 && argv[i][0] != '0'){
                         output[outcount] = getValue(argv[i]);
                         if(outcount == 1){
                             outcount = 0;
@@ -246,7 +246,7 @@ int *inputCheck(int argc, char *argv[], int *output){
     }
 
 
-    printf("%d %d %d\n\n", output[0], output[1], output[2]);
+    //printf("%d %d %d\n\n", output[0], output[1], output[2]);
     return output;
 }
 
@@ -322,9 +322,11 @@ void passwordProcess(int *inputArguments, float *stats){
     for (int line = 1; fgets(buffer, 103, stdin) != NULL; line++) //line = line of the password (empty lines not included)
     {
         /*password lenght check*/
-        if(getLenght(buffer)>=101){  //kontrola delky hesla
-            printf("ERROR: Heslo na radku %d je prilis dlouhe! Maximalni delka hesla je 100 znaku. Toto heslo nebude zkontrolovano a zahrnuto ve statistikach!\n", line);
+        if(getLenght(buffer)>100){  //kontrola delky hesla
+            //printf("ERROR: Heslo na radku %d je prilis dlouhe! Maximalni delka hesla je 100 znaku. Toto heslo nebude zkontrolovano a zahrnuto ve statistikach!\n", line);
+            fprintf(stderr, "Heslo na radku %d je prilis dlouhe! Maximalni delka hesla je 100 znaku. Toto heslo nebude zkontrolovano a zahrnuto ve statistikach!\n", line);
             /*finish reading line*/
+            //printf("%s %d\n",buffer, getLenght(buffer));
             while(fgetc(stdin) != '\n');
         }
         else if(buffer[0]!='\n'){
@@ -352,16 +354,17 @@ int main(int argc, char *argv[]){
     //printf("%d %d %d\n", inputArguments[0], inputArguments[1], inputArguments[2]); //for troubleshooting purpose
 
     if(inputArguments[0] == -1 || inputArguments[1] == -1 || inputArguments[2] == -1){
-        printf("ERROR: Vstupni argumenty jsou chybne zadany!\n");
+        //printf("ERROR: Vstupni argumenty jsou chybne zadany!\n");
+        fprintf(stderr, "ERROR: Vstupni argumenty jsou chybne zadany!\n");
         return -1;
     }
 
     passwordProcess(inputArguments, stats);
-
+    
     /*printing statistics if wanted*/
     if (inputArguments[2] == 1){
         /*I wanted to write out NCHARS stats[0] but it was different number depending on OS used...*/
-        printf("\n\nStatistika:\nRuznych znaku : %d\nMinimalni delka znaku = %.0f\nPrumerna delka znaku = %.1f", getLenght(charsused), stats[1], stats[2]);
+        printf("Statistika:\nRuznych znaku: %d\nMinimalni delka: %.0f\nPrumerna delka: %.1f", getLenght(charsused), stats[1], stats[2]);
     }
 
     printf("\n");
